@@ -101,7 +101,6 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     private AudioCapabilities audioCapabilities;
     private AudioCapabilitiesReceiver audioCapabilitiesReceiver;
 
-    private boolean useExo = false;
     private int overriddenDuration = -1;
     private int positionOffset = 0;
     private boolean overridePosition = false;
@@ -109,6 +108,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     private EMListenerMux listenerMux;
     private boolean playRequested = false;
     private boolean releaseOnDetachFromWindow = true;
+    private boolean forceUseExoPlayer = false;
 
     @Nullable
     private EMEventBus bus;
@@ -139,7 +139,6 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     }
 
     private void setup(Context context, @Nullable AttributeSet attrs) {
-        useExo = Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && EMDeviceUtil.isDeviceCTSCompliant();
         pollRepeater.setRepeatListener(new Repeater.RepeatListener() {
             @Override
             public void onRepeat() {
@@ -161,6 +160,10 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
         initView(context);
         readAttributes(context, attrs);
+    }
+
+    private boolean useExo() {
+        return forceUseExoPlayer || Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && EMDeviceUtil.isDeviceCTSCompliant();
     }
 
     /**
@@ -187,7 +190,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     }
 
     private void initView(Context context) {
-        if (useExo) {
+        if (useExo()) {
             View.inflate(context, R.layout.exomedia_exo_view_layout, this);
         } else {
             View.inflate(context, R.layout.exomedia_video_view_layout, this);
@@ -300,6 +303,10 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      */
     public void setReleaseOnDetachFromWindow(boolean releaseOnDetach) {
         this.releaseOnDetachFromWindow = releaseOnDetach;
+    }
+
+    public void setForceUseExoPlayer(boolean forceUseExoPlayer) {
+        this.forceUseExoPlayer = forceUseExoPlayer;
     }
 
     /**
@@ -751,7 +758,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     public void setVideoURI(Uri uri, MediaUtil.MediaType defaultMediaType) {
         videoUri = uri;
 
-        if (!useExo) {
+        if (!useExo()) {
             videoView.setVideoURI(uri);
         } else {
             if (uri == null) {
@@ -800,7 +807,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * @return True if the volume was set
      */
     public boolean setVolume(float volume) {
-        if (useExo) {
+        if (useExo()) {
             emExoPlayer.setVolume(volume);
             return true;
         }
@@ -823,7 +830,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * @param milliSeconds The time to move the playback to
      */
     public void seekTo(int milliSeconds) {
-        if (!useExo) {
+        if (!useExo()) {
             videoView.seekTo(milliSeconds);
         } else {
             emExoPlayer.seekTo(milliSeconds);
@@ -836,7 +843,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * @return True if a video is playing
      */
     public boolean isPlaying() {
-        if (!useExo) {
+        if (!useExo()) {
             return videoView.isPlaying();
         }
 
@@ -849,7 +856,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * prepared (see {@link #setOnPreparedListener(android.media.MediaPlayer.OnPreparedListener)})
      */
     public void start() {
-        if (!useExo) {
+        if (!useExo()) {
             videoView.start();
         } else {
             emExoPlayer.setPlayWhenReady(true);
@@ -869,7 +876,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * will be stopped (see {@link #startProgressPoll(EMEventBus)})
      */
     public void pause() {
-        if (!useExo) {
+        if (!useExo()) {
             videoView.pause();
         } else {
             emExoPlayer.setPlayWhenReady(false);
@@ -889,7 +896,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * and the progressPoll will be stopped (see {@link #startProgressPoll()})
      */
     public void stopPlayback() {
-        if (!useExo) {
+        if (!useExo()) {
             videoView.stopPlayback();
         } else {
             emExoPlayer.setPlayWhenReady(false);
@@ -909,7 +916,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * and the progressPoll will be stopped (see {@link #startProgressPoll()})
      */
     public void suspend() {
-        if (!useExo) {
+        if (!useExo()) {
             videoView.suspend();
         } else {
             emExoPlayer.release();
@@ -940,7 +947,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             return 0;
         }
 
-        if (!useExo) {
+        if (!useExo()) {
             return videoView.getDuration();
         }
 
@@ -974,7 +981,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             return 0;
         }
 
-        if (!useExo) {
+        if (!useExo()) {
             return positionOffset + videoView.getCurrentPosition();
         }
 
@@ -1023,7 +1030,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * @return The integer percent that is buffered [0, 100] inclusive
      */
     public int getBufferPercentage() {
-        if (!useExo) {
+        if (!useExo()) {
             return videoView.getBufferPercentage();
         }
 
