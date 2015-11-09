@@ -109,6 +109,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     private boolean playRequested = false;
     private boolean releaseOnDetachFromWindow = true;
     private boolean forceUseExoPlayer = false;
+    private boolean enableDefaultControls = false;
 
     @Nullable
     private EMEventBus bus;
@@ -138,6 +139,14 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         setup(context, attrs);
     }
 
+    @Override
+    protected void onFinishInflate() {
+        super.onFinishInflate();
+
+        initView(getContext());
+        setDefaultControlsEnabled(enableDefaultControls);
+    }
+
     private void setup(Context context, @Nullable AttributeSet attrs) {
         pollRepeater.setRepeatListener(new Repeater.RepeatListener() {
             @Override
@@ -158,7 +167,6 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             }
         });
 
-        initView(context);
         readAttributes(context, attrs);
     }
 
@@ -182,9 +190,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             return;
         }
 
-        //Updates the DefaultControls
-        boolean enableDefaultControls = typedArray.getBoolean(R.styleable.EMVideoView_defaultControlsEnabled, false);
-        setDefaultControlsEnabled(enableDefaultControls);
+        enableDefaultControls = typedArray.getBoolean(R.styleable.EMVideoView_defaultControlsEnabled, false);
 
         typedArray.recycle();
     }
