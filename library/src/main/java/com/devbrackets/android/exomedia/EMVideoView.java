@@ -223,7 +223,10 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     private void setupExoPlayer() {
         audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(getContext().getApplicationContext(), this);
         audioCapabilitiesReceiver.register();
-        emExoPlayer = new EMExoPlayer(null);
+
+        if (emExoPlayer == null) {
+            emExoPlayer = new EMExoPlayer(null);
+        }
 
         //Sets the internal listener
         listenerMux = new EMListenerMux(new MuxNotifier());
@@ -313,6 +316,23 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
     public void setForceUseExoPlayer(boolean forceUseExoPlayer) {
         this.forceUseExoPlayer = forceUseExoPlayer;
+    }
+
+    public void setEmExoPlayer(EMExoPlayer emExoPlayer) {
+        if (emExoPlayer == null) {
+            if (this.emExoPlayer != null) {
+                this.emExoPlayer.removeListener(listenerMux);
+                this.emExoPlayer.setMetadataListener(null);
+                this.emExoPlayer.blockingClearSurface();
+                this.emExoPlayer = null;
+            }
+        } else {
+            this.emExoPlayer = emExoPlayer;
+        }
+    }
+
+    public EMExoPlayer getEmExoPlayer() {
+        return emExoPlayer;
     }
 
     /**
