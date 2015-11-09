@@ -139,10 +139,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         setup(context, attrs);
     }
 
-    @Override
-    protected void onFinishInflate() {
-        super.onFinishInflate();
-
+    public void inflateContent() {
         initView(getContext());
         setDefaultControlsEnabled(enableDefaultControls);
     }
