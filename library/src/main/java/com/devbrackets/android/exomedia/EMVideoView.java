@@ -221,7 +221,9 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(getContext().getApplicationContext(), this);
         audioCapabilitiesReceiver.register();
 
-        if (emExoPlayer == null) {
+        boolean playerFromCache = emExoPlayer != null;
+
+        if (!playerFromCache) {
             emExoPlayer = new EMExoPlayer(null);
         }
 
@@ -231,6 +233,10 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         emExoPlayer.setMetadataListener(null);
         emExoPlayer.setSurface(exoVideoSurfaceView.getHolder().getSurface());
         exoVideoSurfaceView.getHolder().addCallback(new EMExoVideoSurfaceCallback());
+
+        if (playerFromCache) {
+            listenerMux.setNotifiedPrepared(true);
+        }
     }
 
     private void setupVideoView() {
@@ -783,7 +789,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
         if (!useExo()) {
             videoView.setVideoURI(uri);
-        } else {
+        } else if (emExoPlayer != null) {
             if (uri == null) {
                 emExoPlayer.replaceRenderBuilder(null);
             } else {
@@ -830,7 +836,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * @return True if the volume was set
      */
     public boolean setVolume(float volume) {
-        if (useExo()) {
+        if (useExo() && emExoPlayer != null) {
             emExoPlayer.setVolume(volume);
             return true;
         }
@@ -855,7 +861,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     public void seekTo(int milliSeconds) {
         if (!useExo()) {
             videoView.seekTo(milliSeconds);
-        } else {
+        } else if (emExoPlayer != null) {
             emExoPlayer.seekTo(milliSeconds);
         }
     }
@@ -868,9 +874,11 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     public boolean isPlaying() {
         if (!useExo()) {
             return videoView.isPlaying();
+        } else if (emExoPlayer != null) {
+            return emExoPlayer.getPlayWhenReady();
+        } else {
+            return false;
         }
-
-        return emExoPlayer.getPlayWhenReady();
     }
 
     /**
@@ -881,7 +889,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     public void start() {
         if (!useExo()) {
             videoView.start();
-        } else {
+        } else if (emExoPlayer != null) {
             emExoPlayer.setPlayWhenReady(true);
         }
 
@@ -901,7 +909,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     public void pause() {
         if (!useExo()) {
             videoView.pause();
-        } else {
+        } else if (emExoPlayer != null) {
             emExoPlayer.setPlayWhenReady(false);
         }
 
@@ -921,7 +929,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     public void stopPlayback() {
         if (!useExo()) {
             videoView.stopPlayback();
-        } else {
+        } else if (emExoPlayer != null) {
             emExoPlayer.setPlayWhenReady(false);
         }
 
@@ -941,7 +949,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     public void suspend() {
         if (!useExo()) {
             videoView.suspend();
-        } else {
+        } else if (emExoPlayer != null) {
             emExoPlayer.release();
         }
 
@@ -974,7 +982,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             return videoView.getDuration();
         }
 
-        return emExoPlayer.getDuration();
+        return emExoPlayer != null ? emExoPlayer.getDuration() : 0;
     }
 
     /**
@@ -1008,7 +1016,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             return positionOffset + videoView.getCurrentPosition();
         }
 
-        return positionOffset + emExoPlayer.getCurrentPosition();
+        return positionOffset + (emExoPlayer != null ? emExoPlayer.getCurrentPosition() : 0);
     }
 
     /**
@@ -1057,7 +1065,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             return videoView.getBufferPercentage();
         }
 
-        return emExoPlayer.getBufferedPercentage();
+        return emExoPlayer != null ? emExoPlayer.getBufferedPercentage() : 0;
     }
 
     /**
