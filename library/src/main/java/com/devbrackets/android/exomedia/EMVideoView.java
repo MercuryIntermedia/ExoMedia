@@ -108,6 +108,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     private EMListenerMux listenerMux;
     private boolean playRequested = false;
     private boolean releaseOnDetachFromWindow = true;
+    private boolean pauseOnDetachFromWindow = true;
     private boolean forceUseExoPlayer = false;
     private boolean enableDefaultControls = false;
 
@@ -264,7 +265,10 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        pause();
+
+        if (pauseOnDetachFromWindow) {
+            pause();
+        }
 
         if (releaseOnDetachFromWindow) {
             release();
@@ -309,6 +313,10 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      */
     public void setReleaseOnDetachFromWindow(boolean releaseOnDetach) {
         this.releaseOnDetachFromWindow = releaseOnDetach;
+    }
+
+    public void setPauseOnDetachFromWindow(boolean pauseOnDetach) {
+        this.pauseOnDetachFromWindow = pauseOnDetach;
     }
 
     public void setForceUseExoPlayer(boolean forceUseExoPlayer) {
