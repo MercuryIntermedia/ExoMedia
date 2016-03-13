@@ -233,6 +233,10 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         emExoPlayer.addListener(listenerMux);
         emExoPlayer.setMetadataListener(null);
         exoVideoTextureView.setSurfaceTextureListener(new EMExoVideoSurfaceCallback());
+
+        if (emExoPlayer.getDuration() > 0) {
+            listenerMux.setNotifiedPrepared(true);
+        }
     }
 
     private void setupVideoView() {
